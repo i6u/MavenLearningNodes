@@ -5,7 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.zttc.bean.User;
 import org.zttc.dao.IUserDao;
-import org.zttc.util.EntitiesHelper;
+import org.zttc.user.util.EntitiesHelper;
 
 import static org.easymock.EasyMock.*;
 
