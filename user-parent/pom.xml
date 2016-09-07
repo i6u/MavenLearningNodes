@@ -18,15 +18,182 @@
     </modules>
 
 
+    <distributionManagement>
+        <repository>
+            <id>learning-releases</id>
+            <name>user release test</name>
+            <url>http://10.211.55.22:8081/repository/local-data-releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>learning-snapshots</id>
+            <name>user snapshot test</name>
+            <url>http://10.211.55.22:8081/repository/local-data-snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <!--配置私服-->
+    <!--在maven的setting.xm中配置profile之后，就可以不用在项目中配置-->
+    <!--<repositories>-->
+    <!--<repository>-->
+    <!--<id>nexus</id>-->
+    <!--<name>Nexus Repository</name>-->
+    <!--<url>http://10.211.55.22:8081/repository/maven-public/</url>-->
+    <!--<releases>-->
+    <!--&lt;!&ndash;可以下载releases包，默认就为true&ndash;&gt;-->
+    <!--<enabled>true</enabled>-->
+    <!--</releases>-->
+    <!--<snapshots>-->
+    <!--&lt;!&ndash;可以下载snapshots包，默认就为false&ndash;&gt;-->
+    <!--<enabled>true</enabled>-->
+    <!--</snapshots>-->
+    <!--</repository>-->
+    <!--</repositories>-->
+
+
     <!--自定义属性-->
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <parent.pom.path>../user-parent/pom.xml</parent.pom.path>
+        <jdbc.mysql.driver>com.mysql.jdbc.Driver</jdbc.mysql.driver>
+        <jdbc.mysql.url>jdbc:mysql://10.211.55.3:3306</jdbc.mysql.url>
+        <jdbc.mysql.username>root</jdbc.mysql.username>
+        <jdbc.mysql.password>root</jdbc.mysql.password>
     </properties>
+
+
+    <!--build包裹构建项目时的操作-->
+    <build>
+        <!--plugins包裹直接使用的plugin-->
+        <plugins>
+            <!--每一个插件都用plugin包裹-->
+            <plugin>
+                <!--maven坐标三剑客在插件库中找-->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.0.1</version>
+                <!--executions包裹执行插件的相关操作-->
+                <executions>
+                    <!--比如execution把插件绑定在maven生命周期中的某个阶段-->
+                    <execution>
+                        <!--插件执行的坐标phase-->
+                        <phase>compile</phase>
+                        <!--执行的目标goal-->
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <!--ok，这个（注意是这样配置的这个插件）插件执行结束-->
+            </plugin>
+
+        </plugins>
+        <!--声明，提供引用-->
+        <!--插件管理，类似依赖管理，声明不引用-->
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>sql-maven-plugin</artifactId>
+                    <version>1.5</version>
+                    <!--插件中也是可以引入依赖的，只是提供给插件使用-->
+                    <dependencies>
+                        <!--配置和项目中配置依赖的方法相同-->
+                        <dependency>
+                            <groupId>mysql</groupId>
+                            <artifactId>mysql-connector-java</artifactId>
+                            <version>5.1.24</version>
+                        </dependency>
+                    </dependencies>
+                    <!--configuration配置插件的相关属性，这需要查官方文档-->
+                    <configuration>
+                        <!--${这里引入的是在properties配置的自定义属性}-->
+                        <driver>${jdbc.mysql.driver}</driver>
+                        <url>${jdbc.mysql.url}</url>
+                        <username>${jdbc.mysql.username}</username>
+                        <password>${jdbc.mysql.password}</password>
+                    </configuration>
+                    <!--眼熟-->
+                    <executions>
+                        <execution>
+                            <id>create-db</id>
+                            <phase>compile</phase>
+                            <goals>
+                                <goal>execute</goal>
+                            </goals>
+                            <!--插件执行某个目标，同样可以配置configuration，具体看相关插件的文档-->
+                            <configuration>
+                                <sqlCommand>create database if not exists i_maven_plugin_sql</sqlCommand>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>init-table</id>
+                            <phase>test-compile</phase>
+                            <goals><goal>execute</goal></goals>
+                            <configuration>
+                                <srcFiles>
+                                    <srcFile>src/main/resources/init.sql</srcFile>
+                                </srcFiles>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-rar-plugin</artifactId>
+                    <version>2.4</version>
+                    <configuration>
+                        <includeJar>true</includeJar>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>rar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.5.1</version>
+                    <configuration>
+                        <source>1.6</source>
+                        <target>1.6</target>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
     <!--指定父类信息-->
     <!--用dependencyManagement进行依赖包管理-->
     <dependencyManagement>
         <dependencies>
+            <!-- https://mvnrepository.com/artifact/org.springframework/spring-context -->
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context</artifactId>
+                <version>4.3.2.RELEASE</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/com.alibaba/fastjson -->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>1.2.15</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-server -->
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-server</artifactId>
+                <version>9.4.0.M1</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-plus -->
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-plus</artifactId>
+                <version>9.4.0.M1</version>
+            </dependency>
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
@@ -42,7 +209,7 @@
             <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
-                <version>5.1.24</version>
+                <version>5.1.18</version>
                 <scope>runtime</scope>
             </dependency>
             <!-- https://mvnrepository.com/artifact/log4j/log4j -->
