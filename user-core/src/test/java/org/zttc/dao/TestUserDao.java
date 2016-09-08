@@ -29,6 +29,7 @@ public class TestUserDao extends AbstractDbUnitTestCase {
 
     @Test
     public void testLoad() throws IOException, DatabaseUnitException, SQLException {
+        System.out.println("test load ...");
         IDataSet ds = createDateSet("t_user");
         DatabaseOperation.CLEAN_INSERT.execute(dbunitCon,ds);
         User tu = userDao.load("admin");
@@ -37,6 +38,7 @@ public class TestUserDao extends AbstractDbUnitTestCase {
 
     @Test
     public void testAdd() throws IOException, DatabaseUnitException, SQLException {
+        System.out.println("test add ...");
         IDataSet ds = createDateSet("t_user");
         DatabaseOperation.TRUNCATE_TABLE.execute(dbunitCon,ds);
         User user = new User("admin", "123", "管理员");
